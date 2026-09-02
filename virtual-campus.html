@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="description" content="Virtual Campus — Explore an interactive office environment with multiple rooms, real-time chat, and collaborative workspaces.">
+    <title>Virtual Campus</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Outfit:wght@500;700;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- LOADING -->
+<div id="loading" style="position: fixed; inset: 0; background: #0a0c10; z-index: 100000; display: flex; justify-content: center; align-items: center; transition: opacity 0.8s ease, visibility 0.8s ease;">
+    <div class="loader-content" style="text-align: center;">
+        <div class="loader-logo">
+            <svg viewBox="0 0 120 120" width="120" height="120" class="loader-svg">
+                <circle cx="60" cy="60" r="54" fill="none" stroke="rgba(59,130,246,0.15)" stroke-width="2"/>
+                <circle cx="60" cy="60" r="54" fill="none" stroke="#3b82f6" stroke-width="2" stroke-dasharray="339" stroke-dashoffset="339" class="loader-ring" style="animation: loaderDraw 2s ease forwards;"/>
+                <text x="60" y="68" text-anchor="middle" fill="#3b82f6" font-family="'Outfit', sans-serif" font-size="28" font-weight="700" class="loader-text">VC</text>
+            </svg>
+        </div>
+        <p class="loader-tagline" style="font-family: 'Outfit', sans-serif; font-size: .85rem; letter-spacing: 4px; color: var(--primary); margin-top: 1.5rem; opacity: 0; animation: fadeInUp .6s ease .5s forwards;">VIRTUAL CAMPUS</p>
+        <div class="loader-bar" style="width: 200px; height: 2px; background: rgba(59,130,246,.15); border-radius: 2px; margin: 1.5rem auto 0; overflow: hidden;"><div class="loader-bar-fill" style="width: 0%; height: 100%; background: var(--primary); border-radius: 2px; animation: loaderFill 2.5s ease forwards;"></div></div>
+    </div>
+</div>
+<style>
+@keyframes loaderDraw { to { stroke-dashoffset: 0; } }
+@keyframes loaderFill { to { width: 100%; } }
+@keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+</style>
+
+<!-- MASTER WRAP -->
+<div id="wrap">
+
+    <!-- LEFT: CANVAS COLUMN -->
+    <div id="canvas-col">
+        <div id="game-container"></div>
+
+        <!-- JOYSTICK (mobile) -->
+        <div id="joy-base"><div id="joy-knob"></div></div>
+
+        <!-- HUD -->
+        <div id="hud">
+            <div class="hud-bar">
+                <div class="hbtn" id="btn-back"><i class="fas fa-building"></i> Virtual Campus</div>
+                <div class="room-title-hud" id="room-hud">
+                    <span id="room-hud-name">–</span>
+                    <span class="cap-badge" id="room-hud-cap">0/0</span>
+                </div>
+                <button class="hbtn hbtn-leave" id="btn-leave" onclick="leaveRoom()"><i class="fas fa-door-open"></i> Leave</button>
+            </div>
+            <div id="mbar"></div>
+        </div>
+
+        <!-- PROXIMITY POPUP -->
+        <div id="popup">
+            <div class="pop-name" id="pop-name">Room</div>
+            <div class="pop-cap" id="pop-cap">0 / 0</div>
+            <div class="pop-label">Room Info</div>
+            <div class="pop-list" id="pop-list"></div>
+            <button class="btn-enter" onclick="enterNearby()"><i class="fas fa-sign-in-alt"></i> Enter Room</button>
+        </div>
+
+        <!-- Controls hint -->
+        <div id="hint">
+            <div class="hrow"><span class="kbkey">WASD</span> or <span class="kbkey">↑↓←→</span> move</div>
+            <div class="hrow"><span class="kbkey">E</span> enter room · <span class="kbkey">Scroll</span> zoom</div>
+        </div>
+    </div>
+
+    <!-- RIGHT: CHAT COLUMN (desktop, shown when in-room) -->
+    <div id="chat-col">
+        <div class="chat-hdr"><i class="fas fa-comments"></i><span id="chat-title">Room Chat</span></div>
+        <div id="d-msgs" class="chat-msgs">
+            <div class="chat-empty">Enter a room to start chatting.</div>
+        </div>
+        <div class="chat-inp-row">
+            <input class="cinput" id="d-inp" placeholder="Type a message…" autocomplete="off">
+            <button class="btn-send" onclick="sendMsg()"><i class="fas fa-paper-plane"></i></button>
+        </div>
+    </div>
+
+    <!-- MOBILE FAB -->
+    <button id="fab" onclick="toggleDrawer()"><i class="fas fa-comment-dots"></i></button>
+
+    <!-- MOBILE DRAWER -->
+    <div id="drawer">
+        <div class="dr-hdr">
+            <h3><i class="fas fa-comments"></i><span id="drawer-title">Room Chat</span></h3>
+            <button class="btn-close-dr" onclick="toggleDrawer()"><i class="fas fa-times"></i></button>
+        </div>
+        <div id="m-msgs" class="chat-msgs">
+            <div class="chat-empty">Enter a room to start chatting.</div>
+        </div>
+        <div class="chat-inp-row">
+            <input class="cinput" id="m-inp" placeholder="Type a message…" autocomplete="off">
+            <button class="btn-send" onclick="sendMsg('m')"><i class="fas fa-paper-plane"></i></button>
+        </div>
+    </div>
+</div>
+
+    <!-- MOBILE TUTORIAL OVERLAY -->
+    <div id="mobile-tutorial-overlay">
+        <div id="tutorial-step-1" class="tutorial-box">
+            <h3><i class="fas fa-gamepad" style="color:var(--primary);"></i> Move Around</h3>
+            <p>Use the joystick in the bottom-left corner to control and move your character around the campus.</p>
+            <button class="tutorial-btn" onclick="nextTutorialStep()"><i class="fas fa-check"></i> Got it</button>
+        </div>
+        <div id="tutorial-step-2" class="tutorial-box" style="display:none;">
+            <h3><i class="fas fa-comments" style="color:var(--primary);"></i> Connect & Chat</h3>
+            <p>When you enter a room, tap the chat button on the right to talk to other innovators.</p>
+            <button class="tutorial-btn" onclick="finishTutorial()"><i class="fas fa-flag-checkered"></i> Let's Go!</button>
+        </div>
+    </div>
+
+<script src="script.js" defer></script>
+</body>
+</html>

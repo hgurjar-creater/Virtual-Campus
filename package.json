@@ -1,0 +1,15 @@
+{
+  "name": "virtual-campus",
+  "version": "1.0.0",
+  "description": "Self-hosted multiplayer Virtual Campus — office-like 2D environment with real-time player sync, room entry, and chat.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "ws": "^8.18.0"
+  },
+  "keywords": ["virtual-campus", "multiplayer", "phaser", "websocket"],
+  "license": "MIT"
+}
